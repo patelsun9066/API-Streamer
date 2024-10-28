@@ -9,8 +9,8 @@ app = Application(broker_address="localhost:9092", loglevel="DEBUG")
 while True:
 
     res = requests.get("https://api.open-meteo.com/v1/forecast", params={
-        "latitude": 51.5,
-        "longitude": -0.11,
+        "latitude": 40.41,
+        "longitude": -74.35,
         "current": "temperature_2m",
     })
     weather = res.json()

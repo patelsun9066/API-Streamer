@@ -1,0 +1,73 @@
+version: "2.2"
+services:
+  jobmanager:
+    image: flink:latest
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+    networks:
+      - flink_network
+
+  taskmanager:
+    image: flink:latest
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+    networks:
+      - flink_network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      #- "9092:9092"
+      - 29092:29092
+    environment:
+      - KAFKA_BROKER_ID= 1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS= PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP= PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME= PLAINTEXT
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR= 1
+    volumes:
+      - /var/lib/kafka/data
+    networks:
+      - flink_network
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+      - ZOOKEEPER_SYNC_LIMIT=2
+    ports:
+        - "2181:2181"
+    networks:
+      - flink_network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - flink_network
+
+networks:
+  flink_network:
+    driver: bridge
+
+
